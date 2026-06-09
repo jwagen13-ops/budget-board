@@ -85,10 +85,16 @@ const LoadCsv = (props: LoadCsvProps): React.ReactNode => {
         delimitersToGuess,
       });
 
-      // Display any errors that occurred during parsing.
-      if (parsedText.errors.length > 0) {
+      // Field count mismatches (e.g. unquoted commas within a field) are
+      // non-fatal: PapaParse still parses the row, just with extra/missing
+      // columns. Only block the import on other, fatal errors.
+      const fatalErrors = parsedText.errors.filter(
+        (error) => error.type !== "FieldMismatch"
+      );
+
+      if (fatalErrors.length > 0) {
         const uniqueErrorMessages = Array.from(
-          new Set(parsedText.errors.map((error) => error.message))
+          new Set(fatalErrors.map((error) => error.message))
         );
 
         uniqueErrorMessages.forEach((errorMessage) => {
